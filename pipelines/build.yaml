@@ -24,7 +24,7 @@ pipeline:
                         script: |
                           echo "Cloning repo..."
                           rm -rf helloservice
-                          git clone https://github.com/DatlaBharath/helloservice.git --branch main
+                          git clone https://github.com/DatlaBharath/helloservice.git
                           cd helloservice
                           pwd
                           ls
@@ -93,7 +93,6 @@ pipeline:
                       spec:
                         script: |
                           echo "Creating deployment.yaml and service.yaml..."
-
                           cat <<EOF > deployment.yaml
                           apiVersion: apps/v1
                           kind: Deployment
@@ -115,7 +114,6 @@ pipeline:
                                   ports:
                                   - containerPort: 5000
                           EOF
-
                           cat <<EOF > service.yaml
                           apiVersion: v1
                           kind: Service
@@ -130,10 +128,7 @@ pipeline:
                                 targetPort: 5000
                                 nodePort: 30007
                           EOF
-
                           echo "Deploying to Kubernetes via SSH..."
-
-                          ssh -o StrictHostKeyChecking=no -i /home/harness/.ssh/test.pem ubuntu@<EC2_IP> "kubectl apply -f -" < deployment.yaml
-                          ssh -o StrictHostKeyChecking=no -i /home/harness/.ssh/test.pem ubuntu@<EC2_IP> "kubectl apply -f -" < service.yaml
-
+                          ssh -o StrictHostKeyChecking=no -i /home/harness/.ssh/test.pem ubuntu@13.126.233.198 "kubectl apply -f -" < deployment.yaml
+                          ssh -o StrictHostKeyChecking=no -i /home/harness/.ssh/test.pem ubuntu@13.126.233.198 "kubectl apply -f -" < service.yaml
                           rm -rf helloservice
