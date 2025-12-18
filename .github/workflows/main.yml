@@ -58,19 +58,19 @@ jobs:
           apiVersion: apps/v1
           kind: Deployment
           metadata:
-            name: helloservice-deployment
+            name: helloservice-uni-deployment
           spec:
             replicas: 2
             selector:
               matchLabels:
-                app: helloservice
+                app: helloservice-uni
             template:
               metadata:
                 labels:
-                  app: helloservice
+                  app: helloservice-uni
               spec:
                 containers:
-                - name: helloservice
+                - name: helloservice-uni
                   image: ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-uni:${{ github.run_number }}
                   ports:
                   - containerPort: 5000
@@ -80,16 +80,16 @@ jobs:
           apiVersion: v1
           kind: Service
           metadata:
-            name: helloservice-service
+            name: helloservice-uni-service
           spec:
             type: NodePort
             selector:
-              app: helloservice
+              app: helloservice-uni
             ports:
             - port: 5000
               targetPort: 5000
               nodePort: 30007
           " > service.yaml
 
-          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@13.201.84.238 "kubectl apply -f -" < deployment.yaml
-          ssh -i /home/ubuntu/.ssh/test.pem -o StrictHostKeyChecking=no ubuntu@13.201.84.238 "kubectl apply -f -" < service.yaml
+          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@3.110.213.183 "kubectl apply -f -" < deployment.yaml
+          ssh -i /home/ubuntu/.ssh/test.pem -o StrictHostKeyChecking=no ubuntu@3.110.213.183 "kubectl apply -f -" < service.yaml
