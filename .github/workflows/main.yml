@@ -1,5 +1,4 @@
 name: CI/CD Pipeline
-
 on:
   push:
     branches:
@@ -18,7 +17,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install Maven
+      - name: Install Maven (if not already installed)
         run: |
           sudo apt update
           sudo apt install -y maven
@@ -32,7 +31,7 @@ jobs:
     steps:
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-${{ github.run_number }} .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-uni:${{ github.run_number }} .
 
   push_image:
     runs-on: adminEC23C9F6-77AD-9E64-7C02-A41EF19C7CC3-runner
@@ -45,13 +44,14 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Push Docker image to Docker Hub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-${{ github.run_number }}
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-uni:${{ github.run_number }}
 
   deploy:
     runs-on: adminEC23C9F6-77AD-9E64-7C02-A41EF19C7CC3-runner
     needs: push_image
     steps:
-      - name: Create deployment and service files
+      - name: Create deployment YAML and deploy
         run: |
           echo "
           apiVersion: apps/v1
@@ -70,11 +70,11 @@ jobs:
               spec:
                 containers:
                 - name: helloservice
-                  image: ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-${{ github.run_number }}
+                  image: ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-uni:${{ github.run_number }}
                   ports:
                   - containerPort: 5000
           " > deployment.yaml
-          
+
           echo "
           apiVersion: v1
           kind: Service
@@ -90,7 +90,5 @@ jobs:
               nodePort: 30007
           " > service.yaml
 
-      - name: Deploy to Kubernetes
-        run: |
-          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@3.110.173.188 "kubectl apply -f -" < deployment.yaml
-          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@3.110.173.188 "kubectl apply -f -" < service.yaml
+          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@3.110.30.21 "kubectl apply -f -" < deployment.yaml
+          ssh -i /home/ubuntu/.ssh/test.pem -o StrictHostKeyChecking=no ubuntu@3.110.30.21 "kubectl apply -f -" < service.yaml
