@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-uni:${{ github.run_number }} .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-${{ github.run_number }} .
 
   push_image:
     runs-on: adminEC23C9F6-77AD-9E64-7C02-A41EF19C7CC3-runner
@@ -45,14 +45,13 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Push Docker image to Docker Hub
-        run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-uni:${{ github.run_number }}
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-${{ github.run_number }}
 
   deploy:
     runs-on: adminEC23C9F6-77AD-9E64-7C02-A41EF19C7CC3-runner
     needs: push_image
     steps:
-      - name: Create deployment and service manifest
+      - name: Create deployment and service files
         run: |
           echo "
           apiVersion: apps/v1
@@ -71,11 +70,11 @@ jobs:
               spec:
                 containers:
                 - name: helloservice
-                  image: ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-uni:${{ github.run_number }}
+                  image: ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-${{ github.run_number }}
                   ports:
                   - containerPort: 5000
           " > deployment.yaml
-
+          
           echo "
           apiVersion: v1
           kind: Service
@@ -91,7 +90,7 @@ jobs:
               nodePort: 30007
           " > service.yaml
 
-      - name: Apply Kubernetes manifests
+      - name: Deploy to Kubernetes
         run: |
           ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@3.110.173.188 "kubectl apply -f -" < deployment.yaml
           ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@3.110.173.188 "kubectl apply -f -" < service.yaml
