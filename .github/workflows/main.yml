@@ -1,5 +1,4 @@
 name: CI/CD Pipeline
-
 on:
   push:
     branches:
@@ -18,7 +17,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install Maven (if not already installed)
+      - name: Install Maven
         run: |
           sudo apt update
           sudo apt install -y maven
@@ -31,7 +30,8 @@ jobs:
     needs: build_project
     steps:
       - name: Build Docker image
-        run: docker build -t sakthisiddu1/helloservice-uni:${{ github.run_number }} .
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-uni:${{ github.run_number }} .
 
   push_image:
     runs-on: adminEC23C9F6-77AD-9E64-7C02-A41EF19C7CC3-runner
@@ -44,7 +44,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
       - name: Push Docker image to Docker Hub
-        run: docker push sakthisiddu1/helloservice-uni:${{ github.run_number }}
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-uni:${{ github.run_number }}
 
   deploy:
     runs-on: adminEC23C9F6-77AD-9E64-7C02-A41EF19C7CC3-runner
@@ -69,7 +70,7 @@ jobs:
               spec:
                 containers:
                 - name: helloservice
-                  image: sakthisiddu1/helloservice-uni:${{ github.run_number }}
+                  image: ${{ secrets.DOCKERHUB_USERNAME }}/helloservice-uni:${{ github.run_number }}
                   ports:
                   - containerPort: 5000
           " > deployment.yaml
@@ -89,5 +90,5 @@ jobs:
               nodePort: 30007
           " > service.yaml
 
-          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@13.233.75.110 "kubectl apply -f -" < deployment.yaml
-          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@13.233.75.110 "kubectl apply -f -" < service.yaml
+          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@13.233.132.146 "kubectl apply -f -" < deployment.yaml
+          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@13.233.132.146 "kubectl apply -f -" < service.yaml
