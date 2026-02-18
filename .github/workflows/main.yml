@@ -17,7 +17,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install Maven
+      - name: Install Maven (if not already installed)
         run: |
           sudo apt update
           sudo apt install -y maven
@@ -90,5 +90,5 @@ jobs:
               nodePort: 30007
           " > service.yaml
 
-          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@13.233.132.146 "kubectl apply -f -" < deployment.yaml
-          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@13.233.132.146 "kubectl apply -f -" < service.yaml
+          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@13.233.212.119 "kubectl apply -f -" < deployment.yaml
+          ssh -o StrictHostKeyChecking=no -i /home/ubuntu/.ssh/test.pem ubuntu@13.233.212.119 "kubectl apply -f -" < service.yaml
